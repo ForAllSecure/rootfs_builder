@@ -1,21 +1,11 @@
-.PHONY: whiteout_image rootfs pull
+.PHONY: static dev build_in_container
 
-whiteout_image:
-	docker build -f dockerfiles/whiteout.dockerfile -t whiteout .
-	docker save -o image.tar whiteout
-	-rm -r simple-image
-	mkdir simple-image
-	tar -xvf image.tar -C simple-image
+static:
+	go build -ldflags "-linkmode external -extldflags -static" -tags="netgo osusergo" -o rootfs_builder -a main.go
 
-# Pull image and extract rootfs
-rootfs:
-	docker run -it --entrypoint=bash --rm -v `pwd`:/go/src/local -w /go/src/local golang:1.11.1 \
-		-c "go get github.com/google/go-containerregistry/pkg/authn; \
-		go get github.com/pkg/errors; \
-		go get github.com/google/go-containerregistry/pkg/name; \
-		go get github.com/google/go-containerregistry/pkg/v1; \
-		go get github.com/google/go-containerregistry/pkg/v1/remote; \
-		go run rootfs_builder.go alpine:latest alpine_rootfs; bash"
+# Statically compile inside a container
+in_container:
+	docker run --privileged -it -v `pwd`:/rootfs_builder golang:1.12 bash -c "cd /rootfs_builder && make static"
 
-debug_container:
-	docker run -it --privileged -v `pwd`:/rootfs golang:1.12 bash
+dev:
+	docker run -it --privileged -v `pwd`:/rootfs_builder golang:1.12 bash -c "cd /rootfs_builder && bash"

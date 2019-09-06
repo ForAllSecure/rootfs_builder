@@ -1,7 +1,7 @@
 Rootfs Builder
 ======
 Rootfs builder pulls an image from a Docker registry and extracts the rootfs.
-The rootfs extracted is equivalent to:
+This is equivalent to:
 `mkdir rootfs && docker export $(docker create busybox) | tar -C rootfs -xvf -`
 The rootfs generated is OCI compliant and can be run with RunC.  The user can
 specify the user to chown the files to and whether or not to use a subuid mapping.
