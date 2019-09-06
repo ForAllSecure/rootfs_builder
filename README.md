@@ -60,10 +60,6 @@ An example config.json looks like:
 * **`User`** (string, OPTIONAL) User to chown files to.
 * **`UseSubuid`** (bool, OPTIONAL) Look up subuid mapping for giving user and chown to that uid.
 
-Tests
-=====
-Tests can be run via `make test`.
-
 Credits
 =====
 Code recycled from Google's Kaniko.

@@ -1,8 +1,0 @@
-{
-    "Name": "alpine",
-    "HTTPS": true,
-    "Spec": {
-        "Dest": "/tmp/alpine",
-        "User": "root"
-    }
-}
