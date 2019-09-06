@@ -1,10 +1,13 @@
 Rootfs Builder
 ======
 Rootfs builder pulls an image from a Docker registry and extracts the rootfs.
-This is equivalent to:
+This is equivalent to the command:
+
 `mkdir rootfs && docker export $(docker create busybox) | tar -C rootfs -xvf -`
+
 The rootfs generated is OCI compliant and can be run with RunC.  The user can
-specify the user to chown the files to and whether or not to use a subuid mapping.
+specify the user to chown the files to and whether or not to use a subuid mapping
+in case they want to unshare user namespaces.
 
 Installation
 =====
@@ -22,16 +25,16 @@ sudo mv go /usr/local
 sudo mv /usr/local/go/bin/go /bin
 ```
 
-Rootfs builder can be statically built:
-`make static`
+Rootfs builder can be statically built.  This statically compiles rootfs builder in a container:
+`make in_container`
 
-Mount the code in a container with Go already installed:
+Or if you want to develop Rootfs Builder in a container, run:
 `make dev`
 
 Usage
 =====
-Run rootfs builder with:
-`./rootfs_builder config.json`
+Rootfs builder can be run with:
+`./rootfs_builder <config.json>`
 
 An example config.json looks like:
 ```
@@ -48,8 +51,8 @@ An example config.json looks like:
         }
 }
 ```
-* **`Name`** (string, REQUIRED) Image name to pull.
-* **`Cert`** (string, OPTIONAL) Path to cert to use for registry.
+* **`Name`** (string, REQUIRED) Name of image to pull.
+* **`Cert`** (string, OPTIONAL) Path to cert to add to root CAs for the registry.
 * **`Retries`** (int, OPTIONAL) Number of attempts to connect to registry.
 * **`HTTPS`** (bool, OPTIONAL) Whether or not connection should be over HTTPS.
 * **`Spec`** (dict, OPTIONAL) Spec for the rootfs.
@@ -59,12 +62,6 @@ An example config.json looks like:
 
 Documentation
 =====
-After installing, you can use `go doc` to get documentation:
-
-    go doc github.com/golang/mock/gomock
-
-Alternatively, there is an online reference for the package hosted on GoPkgDoc
-[here][gomock-ref].
 
 Tests
 =====
@@ -72,10 +69,4 @@ Tests can be run via `make test`.
 
 Credits
 =====
-Code recycled from Google's Kaniko, specifically:
-
-rootfs builder:
-https://github.com/GoogleContainerTools/kaniko/blob/master/pkg/util/fs_util.go
-
-image pulling:
-https://github.com/GoogleContainerTools/kaniko/blob/master/pkg/util/image_util.go#L96
+Code recycled from Google's Kaniko.
