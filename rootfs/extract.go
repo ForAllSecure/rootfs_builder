@@ -1,3 +1,11 @@
+// Parts of this file are modified from Kaniko, an Apache 2.0 licensed project,
+// and so this copyright applies.
+//
+// Copyright 2018 Google LLC
+//
+// https://github.com/GoogleContainerTools/kaniko/blob/master/pkg/util/fs_util.go
+// Commit # 3422d55
+
 package rootfs
 
 import (
