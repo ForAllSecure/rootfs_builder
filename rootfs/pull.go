@@ -10,8 +10,8 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/mruck/rootfs_builder/log"
-	"github.com/mruck/rootfs_builder/util"
+	"github.com/ForAllSecure/rootfs_builder/log"
+	"github.com/ForAllSecure/rootfs_builder/util"
 	"github.com/pkg/errors"
 )
 

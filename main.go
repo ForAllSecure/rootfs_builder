@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mruck/rootfs_builder/log"
-	"github.com/mruck/rootfs_builder/rootfs"
+	"github.com/ForAllSecure/rootfs_builder/log"
+	"github.com/ForAllSecure/rootfs_builder/rootfs"
 )
 
 func main() {

@@ -42,7 +42,7 @@ An example config.json looks like:
     "Name": "debian:buster",
     "Cert": /workdir/cert,
     "Retries": 3,
-    "HTTPS": True,
+    "HTTPS": true,
     "Spec":
         {
             "Dest": "/tmp/rootfs",

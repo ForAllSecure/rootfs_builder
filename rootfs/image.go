@@ -9,7 +9,7 @@ import (
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/partial"
-	"github.com/mruck/rootfs_builder/util"
+	"github.com/ForAllSecure/rootfs_builder/util"
 	"github.com/pkg/errors"
 )
 
