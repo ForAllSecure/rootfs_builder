@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#set -xe
+set -xe
 
 # set up
 test_dir="/test/"
 rm -rf $test_dir
 
 # run
-./rootfs_builder config.json
+./rootfs_builder test/config.json
 
 # check config hash
 config_md5=`md5sum $test_dir/config.json | head -n1 | awk '{print $1;}'`

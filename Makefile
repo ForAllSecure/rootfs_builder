@@ -1,11 +1,22 @@
 .PHONY: static dev build_in_container
 
-static:
+local_static:
 	go build -ldflags "-linkmode external -extldflags -static" -tags="netgo osusergo" -o rootfs_builder -a main.go
 
-# Statically compile inside a container
-in_container:
-	docker run --privileged -it -v `pwd`:/rootfs_builder golang:1.12 bash -c "cd /rootfs_builder && make static"
+static:
+	docker run --privileged -it -v `pwd`:/rootfs_builder golang:1.12 bash -c "cd /rootfs_builder && local_static"
 
-dev:
-	docker run -it --privileged -v `pwd`:/rootfs_builder golang:1.12 bash -c "cd /rootfs_builder && bash"
+dev: rootfs_image
+	docker run -it --privileged -v `pwd`:/rootfs_builder rootfs_image bash
+
+local_build:
+	go build -o rootfs_builder main.go
+
+rootfs_image:
+	docker build -t rootfs_image .
+
+local_test: local_build
+	./test/integration.sh
+
+test: rootfs_image
+	docker run -it --privileged -v `pwd`:/rootfs_builder rootfs_image
