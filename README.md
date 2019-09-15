@@ -26,7 +26,7 @@ sudo mv /usr/local/go/bin/go /bin
 ```
 
 Rootfs builder can be statically built.  This statically compiles rootfs builder in a container:
-`make in_container`
+`make static`
 
 Or if you want to develop Rootfs Builder in a container, run:
 `make dev`
@@ -59,6 +59,10 @@ An example config.json looks like:
 * **`Dest`** (string, OPTIONAL) Destination to extract rootfs to.
 * **`User`** (string, OPTIONAL) User to chown files to.
 * **`UseSubuid`** (bool, OPTIONAL) Look up subuid mapping for giving user and chown to that uid.
+
+Tests
+=====
+To run integration tests, run `make test`.
 
 Credits
 =====

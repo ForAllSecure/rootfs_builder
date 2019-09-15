@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# Pull apline:3.10, extract the rootfs, and verify its hash
 
 set -xe
 

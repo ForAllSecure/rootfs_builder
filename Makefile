@@ -7,7 +7,7 @@ static:
 	docker run --privileged -it -v `pwd`:/rootfs_builder golang:1.12 bash -c "cd /rootfs_builder && local_static"
 
 dev: rootfs_image
-	docker run -it --privileged -v `pwd`:/rootfs_builder rootfs_image bash
+	docker run -it --privileged -v `pwd`:/rootfs_builder --entrypoint=bash rootfs_image
 
 local_build:
 	go build -o rootfs_builder main.go
