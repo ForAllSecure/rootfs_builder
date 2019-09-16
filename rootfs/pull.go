@@ -4,14 +4,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
+	"math"
 	"net/http"
+	"time"
 
+	"github.com/ForAllSecure/rootfs_builder/log"
+	"github.com/ForAllSecure/rootfs_builder/util"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/ForAllSecure/rootfs_builder/log"
-	"github.com/ForAllSecure/rootfs_builder/util"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +24,7 @@ type PullableImage struct {
 	// Path to registry cert
 	Cert *string
 	// Number of attempts to retry pulling
-	Retries uint
+	Retries int
 	// Pull via https. Defaults to false
 	HTTPS bool
 	// Metadata for rootfs extraction
@@ -45,10 +47,21 @@ func NewPullableImage(path string) (*PullableImage, error) {
 // Pull a v1.Image and initialize a PulledImage struct to include the v1.img
 // and metadata for extracting to a rootfs
 func (pullable *PullableImage) Pull() (*PulledImage, error) {
-	img, err := pullable.pull()
+	var err error
+	var img v1.Image
+	for i := 0; i < pullable.Retries; i++ {
+		img, err = pullable.pull()
+		if err == nil {
+			break
+		}
+		backoff := math.Pow(2, float64(i))
+		time.Sleep(time.Second * time.Duration(backoff))
+	}
+	// Failed to pull, return an error
 	if err != nil {
 		return nil, err
 	}
+	// Initialize the image
 	pulled := &PulledImage{
 		img:  img,
 		spec: pullable.Spec,

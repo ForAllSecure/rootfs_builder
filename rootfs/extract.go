@@ -11,7 +11,6 @@ package rootfs
 import (
 	"archive/tar"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -133,12 +132,10 @@ func whiteout(tr *tar.Reader, rootfs string) error {
 		dir := filepath.Dir(path)
 		// Opaque directory
 		if strings.HasPrefix(base, ".wh..wh..opq") {
-			log.Printf("Rm contents of dir: %s", dir)
 			if err := os.RemoveAll(dir); err != nil {
 				return errors.Wrapf(err, "removing whiteout %s", hdr.Name)
 			}
 		} else if strings.HasPrefix(base, ".wh.") {
-			log.Printf("Whiting out %s", path)
 			name := strings.TrimPrefix(base, ".wh.")
 			if err := os.RemoveAll(filepath.Join(dir, name)); err != nil {
 				return errors.Wrapf(err, "removing whiteout %s", hdr.Name)
