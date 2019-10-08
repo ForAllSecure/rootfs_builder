@@ -1,0 +1,9 @@
+{
+    "Name": "nginx:latest",
+    "Retries": 1,
+    "HTTPS": false,
+    "Spec": {
+        "Dest": "/tmp/alpine",
+        "User": "root"
+    }
+}

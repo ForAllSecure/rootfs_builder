@@ -40,7 +40,7 @@ An example config.json looks like:
 ```
 {
     "Name": "debian:buster",
-    "Cert": /workdir/cert,
+    "Cert": "/workdir/cert",
     "Retries": 3,
     "HTTPS": true,
     "Spec":

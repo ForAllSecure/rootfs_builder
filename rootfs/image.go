@@ -6,10 +6,11 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 
+	"github.com/ForAllSecure/rootfs_builder/util"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/partial"
-	"github.com/ForAllSecure/rootfs_builder/util"
 	"github.com/pkg/errors"
 )
 
@@ -111,8 +112,14 @@ func (pulledImg *PulledImage) validateUser() error {
 	}
 
 	// Get subuids for user namespace
-	subuid := os.Getuid()
-	subgid := os.Getgid()
+	subuid, err := strconv.Atoi(userObj.Uid)
+	if err != nil {
+		return err
+	}
+	subgid, err := strconv.Atoi(userObj.Gid)
+	if err != nil {
+		return err
+	}
 	if pulledImg.spec.UseSubuid {
 		subuid, subgid, err = util.GetSubid(userObj)
 		if err != nil {
