@@ -1,0 +1,10 @@
+{
+    "Name": "alpine:3.10",
+    "Retries": 1,
+    "HTTPS": false,
+    "Spec": {
+        "Dest": "/test",
+        "User": "fas",
+        "UseSubuid": true
+    }
+}
