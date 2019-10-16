@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/ForAllSecure/rootfs_builder/log"
@@ -25,10 +26,9 @@ type PullableImage struct {
 	Cert *string
 	// Number of attempts to retry pulling
 	Retries int
-	// Pull via https. Defaults to false
-	HTTPS bool
 	// Metadata for rootfs extraction
-	Spec Spec
+	Spec  Spec
+	https bool
 }
 
 // NewPullableImage initializes a PullableImage spec from a user provided config
@@ -41,6 +41,7 @@ func NewPullableImage(path string) (*PullableImage, error) {
 	if pullableImage.Retries == 0 {
 		pullableImage.Retries = 3
 	}
+	pullableImage.https = true
 	return &pullableImage, nil
 }
 
@@ -53,6 +54,12 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 		img, err = pullable.pull()
 		if err == nil {
 			break
+		}
+		log.Errorf("Failed to pull image: %s", err)
+		serr, ok := err.(*url.Error)
+		if ok && serr.Err.Error() == "http: server gave HTTP response to HTTPS client" {
+			log.Info("Retrying with HTTP")
+			pullable.https = false
 		}
 		backoff := math.Pow(2, float64(i))
 		time.Sleep(time.Second * time.Duration(backoff))
@@ -79,7 +86,7 @@ func (pullable *PullableImage) pull() (v1.Image, error) {
 	registryName := ref.Context().RegistryStr()
 
 	var newReg name.Registry
-	if pullable.HTTPS {
+	if pullable.https {
 		newReg, err = name.NewRegistry(registryName, name.WeakValidation)
 	} else {
 		newReg, err = name.NewRegistry(registryName, name.Insecure)

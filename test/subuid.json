@@ -1,7 +1,6 @@
 {
     "Name": "alpine:3.10",
-    "Retries": 1,
-    "HTTPS": false,
+    "Retries": 3,
     "Spec": {
         "Dest": "/test",
         "User": "fas",

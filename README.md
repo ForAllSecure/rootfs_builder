@@ -42,7 +42,6 @@ An example config.json looks like:
     "Name": "debian:buster",
     "Cert": "/workdir/cert",
     "Retries": 3,
-    "HTTPS": true,
     "Spec":
         {
             "Dest": "/tmp/rootfs",
@@ -54,7 +53,6 @@ An example config.json looks like:
 * **`Name`** (string, REQUIRED) Name of image to pull.
 * **`Cert`** (string, OPTIONAL) Path to cert to add to root CAs for the registry.
 * **`Retries`** (int, OPTIONAL) Number of attempts to connect to registry.
-* **`HTTPS`** (bool, OPTIONAL) Whether or not connection should be over HTTPS.
 * **`Spec`** (dict, OPTIONAL) Spec for the rootfs.
 * **`Dest`** (string, OPTIONAL) Destination to extract rootfs to.
 * **`User`** (string, OPTIONAL) User to chown files to.
