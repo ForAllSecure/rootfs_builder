@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/ForAllSecure/rootfs_builder/log"
@@ -16,24 +15,27 @@ func main() {
 	// Initialize pullable image from config
 	pullableImage, err := rootfs.NewPullableImage(os.Args[1])
 	if err != nil {
-		log.Fatalf("%v", err.Error())
+		log.Errorf("Failed to initialize image from config: %+v", err)
+		return
 	}
 	pulledImage, err := pullableImage.Pull()
 	if err != nil {
-		log.Fatalf("%v", err.Error())
+		log.Errorf("Failed to pull image: %+v", err)
+		return
 	}
 	// Extract rootfs
 	if len(os.Args) == 2 {
 		err = pulledImage.Extract()
 		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
+			log.Errorf("Failed to extract rootfs: %+v", err)
+			return
 		}
 	} else {
 		// Digest only
 		digest, err := pulledImage.Digest()
 		if err != nil {
-			log.Fatalf("%v", err.Error())
+			log.Errorf("Failed to get digest: %+v", err)
+			return
 		}
 		log.Info(digest)
 	}

@@ -55,7 +55,6 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 		if err == nil {
 			break
 		}
-		log.Errorf("Failed to pull image: %s", err)
 		serr, ok := err.(*url.Error)
 		if ok && serr.Err.Error() == "http: server gave HTTP response to HTTPS client" {
 			log.Info("Retrying with HTTP")
@@ -81,7 +80,7 @@ func (pullable *PullableImage) pull() (v1.Image, error) {
 	log.Infof("pulling %s", pullable.Name)
 	ref, err := name.ParseReference(pullable.Name, name.WeakValidation)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	registryName := ref.Context().RegistryStr()
 
@@ -93,7 +92,7 @@ func (pullable *PullableImage) pull() (v1.Image, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	if tag, ok := ref.(name.Tag); ok {
@@ -137,7 +136,7 @@ func (pullable *PullableImage) pull() (v1.Image, error) {
 	authnOption := remote.WithAuthFromKeychain(authn.NewMultiKeychain(authn.DefaultKeychain))
 	img, err := remote.Image(ref, transportOption, authnOption)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	return img, nil
 }
