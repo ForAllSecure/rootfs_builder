@@ -16,26 +16,26 @@ func main() {
 	pullableImage, err := rootfs.NewPullableImage(os.Args[1])
 	if err != nil {
 		log.Errorf("Failed to initialize image from config: %+v", err)
-		return
+		os.Exit(1)
 	}
 	pulledImage, err := pullableImage.Pull()
 	if err != nil {
 		log.Errorf("Failed to pull image: %+v", err)
-		return
+		os.Exit(1)
 	}
 	// Extract rootfs
 	if len(os.Args) == 2 {
 		err = pulledImage.Extract()
 		if err != nil {
 			log.Errorf("Failed to extract rootfs: %+v", err)
-			return
+			os.Exit(1)
 		}
 	} else {
 		// Digest only
 		digest, err := pulledImage.Digest()
 		if err != nil {
 			log.Errorf("Failed to get digest: %+v", err)
-			return
+			os.Exit(1)
 		}
 		log.Info(digest)
 	}
