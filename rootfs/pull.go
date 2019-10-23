@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/ForAllSecure/rootfs_builder/log"
@@ -59,6 +60,11 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 		if ok && serr.Err.Error() == "http: server gave HTTP response to HTTPS client" {
 			log.Info("Retrying with HTTP")
 			pullable.https = false
+		}
+		// This is a v1 schema, give up early
+		if strings.Contains(err.Error(), "unsupported MediaType") {
+			err = errors.WithMessage(err, "Image is v1 schema and too old to support")
+			break
 		}
 		backoff := math.Pow(2, float64(i))
 		time.Sleep(time.Second * time.Duration(backoff))
