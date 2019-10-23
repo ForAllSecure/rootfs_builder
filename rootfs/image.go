@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/ForAllSecure/rootfs_builder/util"
+	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/partial"
 	"github.com/pkg/errors"
@@ -30,12 +31,9 @@ type Spec struct {
 type PulledImage struct {
 	// User specified requirements for rootfs
 	spec Spec
+	name string
 	img  v1.Image
 }
-
-// SchemaV1Error is the error raised when the image is schema v1 and
-// too old to support
-const schemaV1Error = "unsupported status code 404; body: 404 page not found\n"
 
 // Digest from pulled image
 func (pulledImg *PulledImage) Digest() (string, error) {
@@ -47,9 +45,15 @@ func (pulledImg *PulledImage) Digest() (string, error) {
 	}
 	hash, err := pulledImg.img.Digest()
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
-	return hash.String(), nil
+	ref, err := name.ParseReference(pulledImg.name, name.WeakValidation)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	buf := fmt.Sprintf("%s/%s@%s\n", ref.Context().RegistryStr(), ref.Context().RepositoryStr(), hash.String())
+
+	return buf, nil
 }
 
 // Extract rootfs
@@ -165,22 +169,11 @@ func (pulledImg *PulledImage) writeConfig() error {
 	return err
 }
 
-// check config extraction for special errors
-func parseConfigError(err error) error {
-	// The schema is too old, we don't support it
-	if err.Error() == schemaV1Error {
-		// Return a more explicit error
-		return fmt.Errorf("image is v1 schema and too old to support")
-	}
-	// Return a generic error for config loading
-	return errors.Wrap(err, "could not retrieve config from image")
-}
-
 // extract config.json from image and check for errors
 func getConfig(img partial.WithConfigFile) (*v1.ConfigFile, error) {
 	configFile, err := img.ConfigFile()
 	if err != nil {
-		return nil, parseConfigError(err)
+		return nil, errors.Wrap(err, "could not retrieve config from image")
 	}
 	return configFile, nil
 }

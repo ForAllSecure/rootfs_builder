@@ -66,6 +66,10 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 			err = errors.WithMessage(err, "Image is v1 schema and too old to support")
 			break
 		}
+		// Either we are unauthorized, or this is a bad registry/image name
+		if strings.Contains(err.Error(), "UNAUTHORIZED: authentication required") {
+			break
+		}
 		backoff := math.Pow(2, float64(i))
 		time.Sleep(time.Second * time.Duration(backoff))
 	}
@@ -76,6 +80,7 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 	// Initialize the image
 	pulled := &PulledImage{
 		img:  img,
+		name: pullable.Name,
 		spec: pullable.Spec,
 	}
 	return pulled, nil
