@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -56,8 +55,7 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 		if err == nil {
 			break
 		}
-		serr, ok := err.(*url.Error)
-		if ok && serr.Err.Error() == "http: server gave HTTP response to HTTPS client" {
+		if strings.Contains(err.Error(), "http: server gave HTTP response to HTTPS client") {
 			log.Info("Retrying with HTTP")
 			pullable.https = false
 		}
