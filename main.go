@@ -18,21 +18,22 @@ func main() {
 		log.Errorf("Failed to initialize image from config: %+v", err)
 		os.Exit(1)
 	}
-	pulledImage, err := pullableImage.Pull()
+	pulledManifest, err := pullableImage.Pull()
 	if err != nil {
-		log.Errorf("Failed to pull image: %+v", err)
+		log.Errorf("Failed to pull image manifest: %+v", err)
 		os.Exit(1)
 	}
+
 	// Extract rootfs
 	if len(os.Args) == 2 {
-		err = pulledImage.Extract()
+		err = pulledManifest.Extract()
 		if err != nil {
 			log.Errorf("Failed to extract rootfs: %+v", err)
 			os.Exit(1)
 		}
 	} else {
 		// Digest only
-		digest, err := pulledImage.Digest()
+		digest, err := pulledManifest.Digest()
 		if err != nil {
 			log.Errorf("Failed to get digest: %+v", err)
 			os.Exit(1)

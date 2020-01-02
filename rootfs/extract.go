@@ -10,12 +10,16 @@ package rootfs
 
 import (
 	"archive/tar"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/ForAllSecure/rootfs_builder/log"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/v1util"
 	"github.com/pkg/errors"
 )
 
@@ -174,8 +178,8 @@ func handleFiles(tr *tar.Reader, rootfs string, subuid int, subgid int) error {
 }
 
 // Get a tar reader from a v1.Layer
-func tarReader(layer v1.Layer) (*tar.Reader, error) {
-	r, err := layer.Uncompressed()
+func tarReader(layer_file *os.File) (*tar.Reader, error) {
+	r, err := v1util.GunzipReadCloser(layer_file)
 	if err != nil {
 		return nil, err
 	}
@@ -183,21 +187,69 @@ func tarReader(layer v1.Layer) (*tar.Reader, error) {
 	return tr, nil
 }
 
+// saveLayer saves a Layer to disk
+func saveLayer(layer v1.Layer) (*os.File, error) {
+	digest, err := layer.Digest()
+	if err != nil {
+		return nil, err
+	}
+
+	layer_file, err := ioutil.TempFile("", fmt.Sprintf("%s", digest))
+	if err != nil {
+		return nil, errors.Wrapf(err, "generating tempfile")
+	}
+
+	rc, err := layer.Compressed()
+	if err != nil {
+		defer os.Remove(layer_file.Name())
+		return nil, err
+	}
+
+	_, err = io.Copy(layer_file, rc)
+	if err != nil {
+		defer os.Remove(layer_file.Name())
+		return nil, err
+	}
+	layer_file.Seek(0, 0)
+	return layer_file, nil
+}
+
 // extractLayer accepts an open file descriptor to tarball and the destianation
 // to extract the rootfs to
 func extractLayer(layer v1.Layer, rootfs string, subuid int, subgid int) error {
-	tr, err := tarReader(layer)
+	digest, err := layer.Digest()
 	if err != nil {
 		return err
 	}
+	size, err := layer.Size()
+	if err != nil {
+		return err
+	}
+
+	log.Debugf("Downloading layer %s, %d bytes", digest, size)
+	layer_file, err := saveLayer(layer)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(layer_file.Name())
+
+	tr, err := tarReader(layer_file)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Whiting out layer %s", digest)
 	err = whiteout(tr, rootfs)
 	if err != nil {
 		return err
 	}
-	tr, err = tarReader(layer)
+
+	layer_file.Seek(0, 0)
+	tr, err = tarReader(layer_file)
 	if err != nil {
 		return err
 	}
+
+	log.Debugf("Extracting layer %s", digest)
 	err = handleFiles(tr, rootfs, subuid, subgid)
 	if err != nil {
 		return err
