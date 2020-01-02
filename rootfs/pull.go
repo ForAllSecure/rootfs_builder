@@ -15,6 +15,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +31,9 @@ type PullableImage struct {
 	Spec  Spec
 	https bool
 }
+
+// Maximum Backoff time
+var MaxBackoff float64 = 30
 
 // NewPullableImage initializes a PullableImage spec from a user provided config
 func NewPullableImage(path string) (*PullableImage, error) {
@@ -68,7 +72,15 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 		if strings.Contains(err.Error(), "UNAUTHORIZED: authentication required") {
 			break
 		}
+		switch err := errors.Cause(err).(type) {
+		case *transport.Error:
+			break
+		default:
+			log.Warnf("Unrecognized error: %s Trying again", err)
+		}
+
 		backoff := math.Pow(2, float64(i))
+		backoff = math.Min(backoff, MaxBackoff)
 		time.Sleep(time.Second * time.Duration(backoff))
 	}
 	// Failed to pull, return an error
@@ -86,7 +98,7 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 
 // pull a v1.image
 func (pullable *PullableImage) pull() (v1.Image, error) {
-	log.Infof("pulling %s", pullable.Name)
+	log.Debugf("Getting manifest for %s", pullable.Name)
 	ref, err := name.ParseReference(pullable.Name, name.WeakValidation)
 	if err != nil {
 		return nil, errors.WithStack(err)
