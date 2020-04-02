@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 	"math"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -32,8 +33,11 @@ type PullableImage struct {
 	https bool
 }
 
-// Maximum Backoff time
+// MaxBackoff is the maximum backoff time per retry in seconds
 var MaxBackoff float64 = 30
+
+// DefaultRetries is the default number of retries
+var DefaultRetries int = 3
 
 // NewPullableImage initializes a PullableImage spec from a user provided config
 func NewPullableImage(path string) (*PullableImage, error) {
@@ -42,8 +46,8 @@ func NewPullableImage(path string) (*PullableImage, error) {
 	if err != nil {
 		return nil, err
 	}
-	if pullableImage.Retries == 0 {
-		pullableImage.Retries = 3
+	if pullableImage.Retries <= 0 {
+		pullableImage.Retries = DefaultRetries
 	}
 	pullableImage.https = true
 	return &pullableImage, nil
@@ -70,6 +74,13 @@ func (pullable *PullableImage) Pull() (*PulledImage, error) {
 		}
 		// Either we are unauthorized, or this is a bad registry/image name
 		if strings.Contains(err.Error(), "UNAUTHORIZED: authentication required") {
+			break
+		}
+		// If we get a i/o timeout, it's either intermittent network failure
+		// or an incorrect ip address etc. This means we've already failed 5
+		// retries internal to go-containerregistry, so fail
+		if strings.Contains(err.Error(), "i/o timeout") {
+			log.Warnf("Connection to server timed out %s", err)
 			break
 		}
 		switch err := errors.Cause(err).(type) {
@@ -125,7 +136,12 @@ func (pullable *PullableImage) pull() (v1.Image, error) {
 		ref = digest
 	}
 
-	transport := http.DefaultTransport
+	transport := http.DefaultTransport.(*http.Transport)
+	transport.DialContext = (&net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 10 * time.Second,
+		DualStack: true,
+	}).DialContext
 	// A cert was provided
 	if pullable.Cert != nil {
 		rootCAs, err := x509.SystemCertPool()
@@ -149,8 +165,8 @@ func (pullable *PullableImage) pull() (v1.Image, error) {
 		config := &tls.Config{
 			RootCAs: rootCAs,
 		}
-		transport = &http.Transport{TLSClientConfig: config}
 
+		transport.TLSClientConfig = config
 	}
 	transportOption := remote.WithTransport(transport)
 

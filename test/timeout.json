@@ -1,0 +1,8 @@
+{
+    "Name": "192.0.2.1:5000/does/not/exist",
+    "Retries": 10,
+    "Spec": {
+        "Dest": "/test",
+        "User": "root"
+    }
+}
