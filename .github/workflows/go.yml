@@ -31,9 +31,7 @@ jobs:
         fi
 
     - name: Build
-      run: |
-        cd rootfs_builder
-        go build -ldflags "-linkmode external -extldflags -static" -tags="netgo osusergo" -o rootfs_builder -a main.go
+      run: go build -ldflags "-linkmode external -extldflags -static" -tags="netgo osusergo" -o rootfs_builder -a main.go
 
     - name: Test
       run: |
