@@ -34,6 +34,4 @@ jobs:
       run: go build -ldflags "-linkmode external -extldflags -static" -tags="netgo osusergo" -o rootfs_builder -a main.go
 
     - name: Test
-      run: |
-        docker build -t rootfs_image .
-        ./rootfs_builder rootfs_image
+      run: make test
