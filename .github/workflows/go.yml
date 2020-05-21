@@ -34,4 +34,4 @@ jobs:
       run: go build -ldflags "-linkmode external -extldflags -static" -tags="netgo osusergo" -o rootfs_builder -a main.go
 
     - name: Test
-      run: docker run -i --privileged -v `pwd`:/rootfs_builder rootfs_image
+      run: docker run -i --privileged -v `pwd`:/rootfs_builder alpine:latest
