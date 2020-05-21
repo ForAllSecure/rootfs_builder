@@ -7,7 +7,12 @@ set -x
 
 # set up
 printf "testing extracting alpine 3.10...\n"
+
 test_dir="/test/"
+if [ ! -d $test_dir ]; then
+    mkdir $test_dir
+fi
+
 rm -rf $test_dir
 
 # run
