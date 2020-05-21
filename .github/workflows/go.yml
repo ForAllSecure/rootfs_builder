@@ -35,4 +35,4 @@ jobs:
 
     - name: Test
       run: |
-        rootfs_builder rootfs_image
+        ./rootfs_builder rootfs_image
