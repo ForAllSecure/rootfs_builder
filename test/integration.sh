@@ -3,6 +3,7 @@
 # Pull alpine:3.10, extract the rootfs, and verify its hash
 
 set -e
+set -x
 
 # set up
 printf "testing extracting alpine 3.10...\n"
