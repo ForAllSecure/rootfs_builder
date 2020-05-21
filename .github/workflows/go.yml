@@ -35,4 +35,5 @@ jobs:
 
     - name: Test
       run: |
+        docker build -t rootfs_image .
         ./rootfs_builder rootfs_image
