@@ -17,6 +17,7 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/pkg/errors"
 )
 
@@ -24,6 +25,8 @@ import (
 type PullableImage struct {
 	// Name of image to pull
 	Name string
+	//  Path to the tarball (if to be pulled from tar instead of registry)
+	Archive string
 	// Path to registry cert
 	Cert *string
 	// Number of attempts to retry pulling
@@ -49,8 +52,28 @@ func NewPullableImage(path string) (*PullableImage, error) {
 	if pullableImage.Retries <= 0 {
 		pullableImage.Retries = DefaultRetries
 	}
-	pullableImage.https = true
+	if pullableImage.Archive == "" {
+		pullableImage.https = true
+	}
+
 	return &pullableImage, nil
+}
+
+func (pullable *PullableImage) PullFromTar() (*PulledImage, error) {
+	log.Debugf("Reading image from tarball %s", pullable.Archive)
+	tag, _ := name.NewTag(pullable.Name)
+	image, err := tarball.ImageFromPath(pullable.Archive, &tag)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize the image
+	pulled := &PulledImage{
+		img:  image,
+		name: pullable.Name,
+		spec: pullable.Spec,
+	}
+	return pulled, nil
 }
 
 // Pull a v1.Image and initialize a PulledImage struct to include the v1.img

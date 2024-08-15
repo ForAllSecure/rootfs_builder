@@ -18,10 +18,19 @@ func main() {
 		log.Errorf("Failed to initialize image from config: %+v", err)
 		os.Exit(1)
 	}
-	pulledManifest, err := pullableImage.Pull()
-	if err != nil {
-		log.Errorf("Failed to pull image manifest: %+v", err)
-		os.Exit(1)
+	var pulledManifest *rootfs.PulledImage
+	if pullableImage.Archive != "" {
+		pulledManifest, err = pullableImage.PullFromTar()
+		if err != nil {
+			log.Errorf("Failed to read image from tar: %+v", err)
+			os.Exit(1)
+		}
+	} else {
+		pulledManifest, err = pullableImage.Pull()
+		if err != nil {
+			log.Errorf("Failed to pull image manifest: %+v", err)
+			os.Exit(1)
+		}
 	}
 
 	// Extract rootfs

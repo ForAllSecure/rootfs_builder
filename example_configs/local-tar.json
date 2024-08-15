@@ -1,0 +1,8 @@
+{
+    "Name": "",
+    "Archive": "/tmp/downloads/nginx.tar",
+    "Spec": {
+        "Dest": "/tmp/nginx",
+        "User": "root"
+    }
+}
