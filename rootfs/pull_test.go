@@ -5,12 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ForAllSecure/rootfs_builder/rootfs"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPull(t *testing.T) {
-	pullable, err := rootfs.NewPullableImage("../test/alpine.json")
+	pullable, err := NewPullableImage("../test/alpine.json")
 	require.NoError(t, err)
 	_, err = pullable.Pull()
 	require.NoError(t, err)
@@ -21,7 +20,7 @@ func TestPullTimeout(t *testing.T) {
 		t.Skip("skipping timeout test in short mode")
 	}
 
-	pullable, err := rootfs.NewPullableImage("../test/timeout.json")
+	pullable, err := NewPullableImage("../test/timeout.json")
 	require.NoError(t, err)
 
 	start := time.Now()

@@ -21,7 +21,29 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/v1util"
 	"github.com/pkg/errors"
+	"golang.org/x/sys/unix"
 )
+
+// xattrPrefix is how Go's archive/tar package namespaces extended
+// attributes within a PAX header's records (see tar.Header.Xattrs).
+const xattrPrefix = "SCHILY.xattr."
+
+// applyXattrs restores the extended attributes (e.g. file capabilities,
+// SELinux labels) a tar entry carried in its PAX header. Uses Lsetxattr
+// uniformly -- it doesn't follow symlinks, which is required for
+// TypeSymlink and harmless for TypeReg/TypeDir.
+func applyXattrs(path string, hdr *tar.Header) error {
+	for key, value := range hdr.PAXRecords {
+		if !strings.HasPrefix(key, xattrPrefix) {
+			continue
+		}
+		name := strings.TrimPrefix(key, xattrPrefix)
+		if err := unix.Lsetxattr(path, name, []byte(value), 0); err != nil {
+			return errors.Wrapf(err, "setting xattr %q on %s", name, path)
+		}
+	}
+	return nil
+}
 
 // extract a single file
 func extractFile(dest string, hdr *tar.Header, tr io.Reader, subuid int, subgid int) error {
@@ -64,6 +86,9 @@ func extractFile(dest string, hdr *tar.Header, tr io.Reader, subuid int, subgid 
 			return err
 		}
 		currFile.Close()
+		if err := applyXattrs(path, hdr); err != nil {
+			return err
+		}
 	case tar.TypeDir:
 		if err := os.MkdirAll(path, mode); err != nil {
 			return err
@@ -73,6 +98,9 @@ func extractFile(dest string, hdr *tar.Header, tr io.Reader, subuid int, subgid 
 			return err
 		}
 		if err := os.Chown(path, uid, gid); err != nil {
+			return err
+		}
+		if err := applyXattrs(path, hdr); err != nil {
 			return err
 		}
 
@@ -112,6 +140,9 @@ func extractFile(dest string, hdr *tar.Header, tr io.Reader, subuid int, subgid 
 			return err
 		}
 		if err := os.Lchown(path, uid, gid); err != nil {
+			return err
+		}
+		if err := applyXattrs(path, hdr); err != nil {
 			return err
 		}
 	}
